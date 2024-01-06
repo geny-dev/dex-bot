@@ -66,7 +66,9 @@ const Example = () => {
 
   const onCreateTrade = useCallback(async () => {
     await refreshBalances()
-    const amountIn = Math.random() * parseFloat(tokenInBalance)
+    const amountIn =
+      (Math.random() * 0.3 + (1 - Math.random()) * 0.7) *
+      parseFloat(tokenInBalance)
     setTrade(await createTrade(amountIn))
   }, [tokenInBalance, refreshBalances])
 
