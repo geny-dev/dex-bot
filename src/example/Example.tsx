@@ -105,15 +105,15 @@ const Example = () => {
     if (isBotRunning) {
       if (seconds > 0) {
         intervalId = setInterval(() => {
-          setStatusString(`Dex Bot is starting in ` + seconds + ` secs...`)
+          setStatusString(`Next Dex Bot is starting in ` + seconds + ` secs...`)
           setSeconds(seconds - 1)
         }, 1000)
       }
       if (seconds == 0) {
-        const count = Math.floor(Math.random() * 20) + 20
+        const count = Math.floor(Math.random() * 60) + 60
         setSeconds(count)
         createRandomPair()
-      } else if (seconds == 15) {
+      } else if (seconds == 60) {
         onCreateTrade()
         onTrade(trade)
       }
