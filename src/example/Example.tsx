@@ -3,6 +3,7 @@ import './Example.css'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { CurrentConfig, Environment } from '../config'
+import { USDC_TOKEN, WETH_TOKEN } from '../libs/constants-goerli'
 import {
   connectBrowserExtensionWallet,
   getProvider,
@@ -32,7 +33,6 @@ const Example = () => {
   const [tokenOutBalance, setTokenOutBalance] = useState<string>()
   const [blockNumber, setBlockNumber] = useState<number>(0)
   const [seconds, setSeconds] = useState<number>(0)
-  const [amountIn, setAmountIn] = useState<number>(0.01)
 
   // Listen for new blocks and update the wallet
   useOnBlockUpdated(async (blockNumber: number) => {
@@ -65,17 +65,25 @@ const Example = () => {
   }, [refreshBalances])
 
   const onCreateTrade = useCallback(async () => {
-    refreshBalances()
-    debugger
-    // const newAmountIn = Math.random() * parseFloat(tokenInBalance)
-    const newAmountIn = 0.001
-    setAmountIn(newAmountIn)
-    setTrade(await createTrade(newAmountIn))
-  }, [refreshBalances, setAmountIn, tokenInBalance])
+    await refreshBalances()
+    const amountIn = Math.random() * parseFloat(tokenInBalance)
+    setTrade(await createTrade(amountIn))
+  }, [tokenInBalance, refreshBalances])
 
   const onTrade = useCallback(async (trade: TokenTrade | undefined) => {
     if (trade) {
       setTxState(await executeTrade(trade))
+    }
+  }, [])
+
+  const createRandomPair = useCallback(() => {
+    const type = Math.floor(Math.random() * 3)
+    if (type == 0) {
+      CurrentConfig.tokens.in = USDC_TOKEN
+      CurrentConfig.tokens.out = WETH_TOKEN
+    } else {
+      CurrentConfig.tokens.in = WETH_TOKEN
+      CurrentConfig.tokens.out = USDC_TOKEN
     }
   }, [])
 
@@ -86,10 +94,8 @@ const Example = () => {
     } else {
       setBotRunning(true)
       setStatusString('Dex Bot Started')
-      const count = Math.floor(Math.random() * 10) + 10
-      setSeconds(count)
     }
-  }, [isBotRunning, setBotRunning])
+  }, [isBotRunning, setBotRunning, setStatusString])
 
   useEffect(() => {
     let intervalId: NodeJS.Timer
@@ -100,16 +106,19 @@ const Example = () => {
           setStatusString(`Dex Bot is starting in ` + seconds + ` secs...`)
           setSeconds(seconds - 1)
         }, 1000)
-      } else {
-        const count = Math.floor(Math.random() * 10) + 100
+      }
+      if (seconds == 0) {
+        const count = Math.floor(Math.random() * 20) + 20
         setSeconds(count)
+        createRandomPair()
+      } else if (seconds == 15) {
         onCreateTrade()
         onTrade(trade)
       }
     }
 
     return () => clearInterval(intervalId)
-  }, [isBotRunning, seconds, trade, onCreateTrade])
+  }, [isBotRunning, seconds, trade, onCreateTrade, onTrade, createRandomPair])
 
   return (
     <div className="App">
@@ -122,10 +131,6 @@ const Example = () => {
             Please install a wallet to use this example configuration
           </h2>
         )}
-      <h3>
-        Trading {amountIn} {CurrentConfig.tokens.in.symbol} for{' '}
-        {CurrentConfig.tokens.out.symbol}
-      </h3>
       <h3>{trade && `Constructed Trade: ${displayTrade(trade)}`}</h3>
       <button
         onClick={() => onRunBot()}
