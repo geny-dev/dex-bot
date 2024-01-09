@@ -110,10 +110,10 @@ const Example = () => {
         }, 1000)
       }
       if (seconds == 0) {
-        const count = Math.floor(Math.random() * 60) + 60
+        const count = Math.floor(Math.random() * 10) + 15
         setSeconds(count)
         createRandomPair()
-      } else if (seconds == 60) {
+      } else if (seconds == 15) {
         onCreateTrade()
         onTrade(trade)
       }
